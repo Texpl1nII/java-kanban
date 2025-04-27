@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import java.util.ArrayList;
 import java.util.List;
+=======
+
+import java.util.*;
+>>>>>>> sprint_6-solution
 
 public class InMemoryHistoryManager implements HistoryManager {
     private final List<Task> history = new ArrayList<>();
