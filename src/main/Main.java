@@ -2,27 +2,43 @@ public class Main {
     public static void main(String[] args) {
         TaskManager manager = Managers.getDefault();
 
-        // Создание задач
+        // Create tasks
         Task task1 = manager.createTask(new Task("Задача 1", "Описание задачи 1"));
         Task task2 = manager.createTask(new Task("Задача 2", "Описание задачи 2"));
 
-        // Создание эпиков и подзадач
+        // Create epics and subtasks
         Epic epic1 = manager.createEpic(new Epic("Эпик 1", "Большой семейный праздник"));
         Subtask subtask1 = manager.createSubtask(new Subtask("Подзадача 1", "Купить продукты", epic1));
         Subtask subtask2 = manager.createSubtask(new Subtask("Подзадача 2", "Пригласить гостей", epic1));
+        Subtask subtask3 = manager.createSubtask(new Subtask("Подзадача 3", "Украсить дом", epic1));
 
         Epic epic2 = manager.createEpic(new Epic("Эпик 2", "Переезд"));
-        Subtask subtask3 = manager.createSubtask(new Subtask("Подзадача 3", "Собрать вещи", epic2));
 
-        // Проверка истории
+        // Initial history
         System.out.println("История после создания:");
         printAllTasks(manager);
 
+        // Request tasks in different orders
         manager.getTask(task1.getId());
         manager.getEpic(epic1.getId());
         manager.getSubtask(subtask1.getId());
+        System.out.println("\nИстория после первого просмотра:");
+        printAllTasks(manager);
 
-        System.out.println("\nИстория после просмотров:");
+        // Request some tasks again to check duplicates
+        manager.getTask(task1.getId());
+        manager.getSubtask(subtask2.getId());
+        System.out.println("\nИстория после повторного просмотра (проверка дубликатов):");
+        printAllTasks(manager);
+
+        // Delete a task and check history
+        manager.deleteTask(task1.getId());
+        System.out.println("\nИстория после удаления задачи 1:");
+        printAllTasks(manager);
+
+        // Delete epic1 and check history
+        manager.deleteEpic(epic1.getId());
+        System.out.println("\nИстория после удаления эпика 1 (и его подзадач):");
         printAllTasks(manager);
     }
 

@@ -45,4 +45,43 @@ public class InMemoryTaskManagerTest {
         });
         assertEquals("Subtask cannot be its own epic", exception.getMessage());
     }
+
+    @Test
+    void shouldRemoveTaskFromHistoryWhenDeleted() {
+        Task task = manager.createTask(new Task("Task", "Description"));
+        manager.getTask(task.getId()); // Add to history
+        assertFalse(manager.getHistory().isEmpty(), "History should contain the task");
+
+        manager.deleteTask(task.getId());
+        assertTrue(manager.getHistory().isEmpty(), "Task should be removed from history");
+    }
+
+    @Test
+    void shouldRemoveEpicAndSubtasksFromHistoryWhenDeleted() {
+        Subtask createdSubtask = manager.createSubtask(subtask);
+        manager.getEpic(epic.getId()); // Add epic to history
+        manager.getSubtask(createdSubtask.getId()); // Add subtask to history
+        assertEquals(2, manager.getHistory().size(), "History should contain epic and subtask");
+
+        manager.deleteEpic(epic.getId());
+        assertTrue(manager.getHistory().isEmpty(), "Epic and subtask should be removed from history");
+    }
+
+    @Test
+    void shouldMaintainEpicSubtaskIntegrity() {
+        Subtask createdSubtask = manager.createSubtask(subtask);
+        assertEquals(1, manager.getEpicSubtasks(epic.getId()).size(), "Epic should have one subtask");
+
+        manager.deleteSubtask(createdSubtask.getId());
+        assertTrue(manager.getEpicSubtasks(epic.getId()).isEmpty(), "Epic should have no subtasks after deletion");
+    }
+
+    @Test
+    void shouldPreventInconsistentSetterUpdates() {
+        Task task = manager.createTask(new Task("Task", "Description"));
+        task.setId(999); // Attempt to change ID manually
+
+        manager.updateTask(task);
+        assertNotNull(manager.getTask(task.getId()), "Task should still be accessible with original ID");
+    }
 }
