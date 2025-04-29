@@ -1,3 +1,7 @@
+package test;
+
+import model.Status;
+import model.Task;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

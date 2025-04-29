@@ -1,6 +1,11 @@
+package manager;
+
+import model.Task;
 import java.util.*;
 
-public class InMemoryHistoryManager implements HistoryManager {
+import java.util.*;
+
+public class InMemoryHistoryManager implements manager.HistoryManager {
     private static class Node {
         Task task;
         Node prev;

@@ -1,3 +1,8 @@
+package test;
+
+import manager.HistoryManager;
+import manager.Managers;
+import model.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,8 +37,8 @@ public class InMemoryHistoryManagerTest {
         Task task = new Task("Task", "Description");
         task.setId(1);
 
-        historyManager.add(task); // First add
-        historyManager.add(task); // Second add (should replace first)
+        historyManager.add(task);
+        historyManager.add(task);
 
         assertEquals(1, historyManager.getHistory().size(), "History should contain only one instance of the task");
         assertEquals(task, historyManager.getHistory().get(0), "Latest task should be in history");
