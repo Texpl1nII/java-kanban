@@ -1,9 +1,12 @@
 package model;
 
-public class Subtask extends model.Task {
+import model.Task;
+import model.Epic;
+
+public class Subtask extends Task {
     private final int epicId;
 
-    public Subtask(String title, String description, model.Epic epic) {
+    public Subtask(String title, String description, Epic epic) {
         super(title, description);
         this.epicId = epic.getId();
     }

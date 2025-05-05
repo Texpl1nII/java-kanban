@@ -1,9 +1,12 @@
 package model;
 
+import model.Task;
+import model.Subtask;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class Epic extends model.Task {
+public class Epic extends Task {
     private final List<Integer> subtaskIds;
 
     public Epic(String title, String description) {
@@ -15,7 +18,7 @@ public class Epic extends model.Task {
         return subtaskIds;
     }
 
-    public void addSubtask(model.Subtask subtask) {
+    public void addSubtask(Subtask subtask) {
         subtaskIds.add(subtask.getId());
     }
 

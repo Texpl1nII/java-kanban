@@ -1,18 +1,22 @@
 package manager;
 
+import manager.TaskManager;
+import manager.InMemoryHistoryManager;
+import manager.HistoryManager;
 import model.Epic;
 import model.Subtask;
 import model.Task;
 import model.Status;
 
+import java.util.HashMap;
 import java.util.*;
 
-public class InMemoryTaskManager implements manager.TaskManager {
+public class InMemoryTaskManager implements TaskManager {
     private int idCounter = 0;
-    private final Map<Integer, Task> tasks = new HashMap<>();
-    private final Map<Integer, Epic> epics = new HashMap<>();
-    private final Map<Integer, Subtask> subtasks = new HashMap<>();
-    private final manager.HistoryManager historyManager = manager.Managers.getDefaultHistory();
+    private final HashMap<Integer, Task> tasks = new HashMap<>();
+    private final HashMap<Integer, Epic> epics = new HashMap<>();
+    private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
+    private final HistoryManager historyManager = new InMemoryHistoryManager();
 
     private int generateId() {
         return ++idCounter;

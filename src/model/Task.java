@@ -1,15 +1,19 @@
 package model;
 
+import model.Status;
+
+import java.util.Objects;
+
 public class Task {
     protected int id;
     protected String title;
     protected String description;
-    protected model.Status status;
+    protected Status status;
 
     public Task(String title, String description) {
         this.title = title;
         this.description = description;
-        this.status = model.Status.NEW;
+        this.status = Status.NEW;
     }
 
     public int getId() {
@@ -36,11 +40,11 @@ public class Task {
         this.description = description;
     }
 
-    public model.Status getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(model.Status status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 
@@ -54,7 +58,7 @@ public class Task {
 
     @Override
     public int hashCode() {
-        return id;
+        return Objects.hash(id);
     }
 
     @Override
