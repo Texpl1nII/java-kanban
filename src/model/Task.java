@@ -1,3 +1,9 @@
+package model;
+
+import model.Status;
+
+import java.util.Objects;
+
 public class Task {
     protected int id;
     protected String title;
@@ -10,14 +16,37 @@ public class Task {
         this.status = Status.NEW;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public Status getStatus() { return status; }
-    public void setStatus(Status status) { this.status = status; }
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -29,7 +58,7 @@ public class Task {
 
     @Override
     public int hashCode() {
-        return id;
+        return Objects.hash(id);
     }
 
     @Override
