@@ -174,7 +174,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             String content = Files.readString(file.toPath());
             String[] lines = content.split("\n");
             if (lines.length <= 1) {
-                return manager; // Empty file or only header
+                return manager;
             }
 
             for (int i = 1; i < lines.length; i++) {
