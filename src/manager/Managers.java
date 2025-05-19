@@ -17,7 +17,7 @@ public class Managers {
             throw new RuntimeException("Error creating temp file for FileBackedTaskManager", e);
         }
     }
-    
+    //тут нет пробела
     public static HistoryManager getDefaultHistory() {
         return new InMemoryHistoryManager();
     }
