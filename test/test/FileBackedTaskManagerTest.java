@@ -29,12 +29,7 @@ class FileBackedTaskManagerTest {
 
     @Test
     void testCreateAndSaveTask() {
-        Task task = new Task("Task 1", "Description 1") {
-            @Override
-            public TaskType getType() {
-                return TaskType.TASK;
-            }
-        };
+        Task task = new Task("Task 1", "Description 1");
         Task createdTask = manager.createTask(task);
 
         assertNotNull(createdTask, "Task should be created");
@@ -51,19 +46,9 @@ class FileBackedTaskManagerTest {
 
     @Test
     void testCreateAndSaveEpicAndSubtask() {
-        Epic epic = new Epic("Epic 1", "Epic Description") {
-            @Override
-            public TaskType getType() {
-                return TaskType.EPIC;
-            }
-        };
+        Epic epic = new Epic("Epic 1", "Epic Description");
         Epic createdEpic = manager.createEpic(epic);
-        Subtask subtask = new Subtask("Subtask 1", "Subtask Description", createdEpic) {
-            @Override
-            public TaskType getType() {
-                return TaskType.SUBTASK;
-            }
-        };
+        Subtask subtask = new Subtask("Subtask 1", "Subtask Description", createdEpic);
         Subtask createdSubtask = manager.createSubtask(subtask);
 
         assertNotNull(createdEpic, "Epic should be created");
@@ -82,12 +67,7 @@ class FileBackedTaskManagerTest {
 
     @Test
     void testUpdateTask() {
-        Task task = new Task("Task 1", "Description 1") {
-            @Override
-            public TaskType getType() {
-                return TaskType.TASK;
-            }
-        };
+        Task task = new Task("Task 1", "Description 1");
         Task createdTask = manager.createTask(task);
         createdTask.setTitle("Updated Task");
         createdTask.setStatus(Status.IN_PROGRESS);
@@ -106,12 +86,7 @@ class FileBackedTaskManagerTest {
 
     @Test
     void testDeleteTask() {
-        Task task = new Task("Task 1", "Description 1") {
-            @Override
-            public TaskType getType() {
-                return TaskType.TASK;
-            }
-        };
+        Task task = new Task("Task 1", "Description 1");
         Task createdTask = manager.createTask(task);
         manager.deleteTask(createdTask.getId());
 
@@ -128,27 +103,19 @@ class FileBackedTaskManagerTest {
 
     @Test
     void testLoadFromFile() {
-        Epic epic = new Epic("Epic 1", "Epic Description") {
-            @Override
-            public TaskType getType() {
-                return TaskType.EPIC;
-            }
-        };
-        Task task = new Task("Task 1", "Description 1") {
-            @Override
-            public TaskType getType() {
-                return TaskType.TASK;
-            }
-        };
+        Epic epic = new Epic("Epic 1", "Epic Description");
+        Task task = new Task("Task 1", "Description 1");
         manager.createEpic(epic);
         manager.createTask(task);
-        Subtask subtask = new Subtask("Subtask 1", "Subtask Description", epic) {
-            @Override
-            public TaskType getType() {
-                return TaskType.SUBTASK;
-            }
-        };
+        Subtask subtask = new Subtask("Subtask 1", "Subtask Description", epic);
         manager.createSubtask(subtask);
+
+        try {
+            String content = Files.readString(tempFile.toPath());
+            System.out.println("File content:\n" + content);
+        } catch (IOException e) {
+            fail("Failed to read file: " + e.getMessage());
+        }
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
@@ -165,20 +132,15 @@ class FileBackedTaskManagerTest {
     void testLoadEmptyFile() {
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
-        assertTrue(loadedManager.getAllTasks().isEmpty(), "Tasks should be empty for empty file");
-        assertTrue(loadedManager.getAllEpics().isEmpty(), "Epics should be empty for empty file");
-        assertTrue(loadedManager.getAllSubtasks().isEmpty(), "Subtasks should be empty for empty file");
+        assertTrue(loadedManager.getAllTasks().isEmpty(), "Tasks should be empty for non-existent or empty file");
+        assertTrue(loadedManager.getAllEpics().isEmpty(), "Epics should be empty for non-existent or empty file");
+        assertTrue(loadedManager.getAllSubtasks().isEmpty(), "Subtasks should be empty for non-existent or empty file");
     }
 
     @Test
     void testSaveThrowsManagerSaveException() {
         FileBackedTaskManager invalidManager = new FileBackedTaskManager(new File("/invalid/path/tasks.csv"));
-        Task task = new Task("Task 1", "Description 1") {
-            @Override
-            public TaskType getType() {
-                return TaskType.TASK;
-            }
-        };
+        Task task = new Task("Task 1", "Description 1");
 
         assertThrows(ManagerSaveException.class, () -> invalidManager.createTask(task),
                 "Should throw ManagerSaveException for invalid file path");

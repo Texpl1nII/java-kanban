@@ -18,7 +18,7 @@ public class Task {
     }
 
     public TaskType getType() {
-        return null;
+        return TaskType.TASK;
     }
 
     public int getId() {

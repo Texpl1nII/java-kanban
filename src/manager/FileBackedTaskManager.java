@@ -164,6 +164,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public static FileBackedTaskManager loadFromFile(File file) {
         FileBackedTaskManager manager = new FileBackedTaskManager(file);
+        if (!file.exists()) {
+            return manager;
+        }
         try {
             String content = Files.readString(file.toPath());
             String[] lines = content.split("\n");

@@ -46,15 +46,12 @@ public class Main {
         System.out.println("\nИстория после удаления эпика 1 (и его подзадач):");
         printAllTasks(manager);
 
-        // Demonstrate file persistence
         if (manager instanceof FileBackedTaskManager) {
             try {
-                // Access the file field using reflection (since it's private)
                 Field fileField = FileBackedTaskManager.class.getDeclaredField("file");
                 fileField.setAccessible(true);
                 File file = (File) fileField.get(manager);
 
-                // Create a new manager from the same file
                 FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(file);
 
                 System.out.println("\nTasks in new manager (loaded from file):");
