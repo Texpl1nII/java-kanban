@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
-    public int idCounter = 0;
+    protected int idCounter = 0;
     public final Map<Integer, Task> tasks = new HashMap<>();
     public final Map<Integer, Epic> epics = new HashMap<>();
     public final Map<Integer, Subtask> subtasks = new HashMap<>();
