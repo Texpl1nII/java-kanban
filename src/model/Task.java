@@ -1,6 +1,7 @@
 package model;
 
 import model.Status;
+import model.TaskType;
 
 import java.util.Objects;
 
@@ -14,6 +15,10 @@ public class Task {
         this.title = title;
         this.description = description;
         this.status = Status.NEW;
+    }
+
+    public TaskType getType() {
+        return TaskType.TASK;
     }
 
     public int getId() {

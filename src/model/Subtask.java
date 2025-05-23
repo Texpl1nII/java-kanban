@@ -2,6 +2,7 @@ package model;
 
 import model.Task;
 import model.Epic;
+import model.TaskType;
 
 public class Subtask extends Task {
     private final int epicId;
@@ -9,6 +10,11 @@ public class Subtask extends Task {
     public Subtask(String title, String description, Epic epic) {
         super(title, description);
         this.epicId = epic.getId();
+    }
+
+    @Override
+    public TaskType getType() {
+        return TaskType.SUBTASK;
     }
 
     public int getEpicId() {

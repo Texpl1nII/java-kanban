@@ -1,10 +1,14 @@
 package main;
 
+import manager.FileBackedTaskManager;
 import manager.Managers;
 import manager.TaskManager;
 import model.Epic;
 import model.Subtask;
 import model.Task;
+
+import java.io.File;
+import java.lang.reflect.Field;
 
 public class Main {
     public static void main(String[] args) {
@@ -41,6 +45,28 @@ public class Main {
         manager.deleteEpic(epic1.getId());
         System.out.println("\nИстория после удаления эпика 1 (и его подзадач):");
         printAllTasks(manager);
+
+        if (manager instanceof FileBackedTaskManager) {
+            try {
+                Field fileField = FileBackedTaskManager.class.getDeclaredField("file");
+                fileField.setAccessible(true);
+                File file = (File) fileField.get(manager);
+
+                FileBackedTaskManager newManager = FileBackedTaskManager.loadFromFile(file);
+
+                System.out.println("\nTasks in new manager (loaded from file):");
+                newManager.getAllTasks().forEach(System.out::println);
+                System.out.println("\nEpics in new manager:");
+                newManager.getAllEpics().forEach(epic -> {
+                    System.out.println(epic);
+                    newManager.getEpicSubtasks(epic.getId()).forEach(subtask -> System.out.println("--> " + subtask));
+                });
+                System.out.println("\nSubtasks in new manager:");
+                newManager.getAllSubtasks().forEach(System.out::println);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                System.err.println("Error accessing file field: " + e.getMessage());
+            }
+        }
     }
 
     private static void printAllTasks(TaskManager manager) {
