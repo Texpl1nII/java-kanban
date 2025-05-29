@@ -10,7 +10,7 @@ public class SubtaskTest {
 
     @Test
     void subtasksWithSameIdShouldBeEqual() {
-        Epic epic = new Epic("Epic", "Description");
+        Epic epic = new Epic("Epic", "Description", null, null);
         epic.setId(1);
 
         Subtask subtask1 = new Subtask("Subtask 1", "Description 1", epic);

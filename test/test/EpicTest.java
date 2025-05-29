@@ -9,9 +9,9 @@ public class EpicTest {
 
     @Test
     void epicsWithSameIdShouldBeEqual() {
-        Epic epic1 = new Epic("Epic 1", "Description 1");
+        Epic epic1 = new Epic("Epic", "Description", null, null);
         epic1.setId(1);
-        Epic epic2 = new Epic("Epic 2", "Description 2");
+        Epic epic2 = new Epic("Epic", "Description", null, null);
         epic2.setId(1);
 
         assertEquals(epic1, epic2, "Epics with the same ID should be equal");
