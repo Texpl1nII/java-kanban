@@ -64,14 +64,17 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateTask(Task task) {
-        if (hasOverlaps(task)) {
-            throw new IllegalStateException("Задача пересекается с другими задачами");
+        Task existingTask = tasks.get(task.getId());
+        if (existingTask == null) {
+            return;
+        }
+        if (!Objects.equals(task.getStartTime(), existingTask.getStartTime()) ||
+                !Objects.equals(task.getDuration(), existingTask.getDuration())) {
+            if (hasOverlaps(task)) {
+                throw new IllegalStateException("Task overlaps with other tasks");
+            }
         }
         tasks.put(task.getId(), task);
-        prioritizedTasks.removeIf(t -> t.getId() == task.getId());
-        if (task.getStartTime() != null) {
-            prioritizedTasks.add(task);
-        }
     }
 
     @Override

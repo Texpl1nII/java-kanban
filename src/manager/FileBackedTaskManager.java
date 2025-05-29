@@ -111,7 +111,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     protected void save() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            writer.write("id,type,name,status,description,duration,startTime,epic\n");
+            writer.write("id,type,name,status,description,duration,startTime,epicId\n");
             for (Task task : getAllTasks()) {
                 writer.write(toString(task));
                 writer.newLine();
@@ -124,8 +124,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 writer.write(toString(subtask));
                 writer.newLine();
             }
+            writer.newLine();
+            for (Task task : historyManager.getHistory()) {
+                writer.write(task.getId() + ",");
+            }
+            writer.newLine();
         } catch (IOException e) {
-            throw new ManagerSaveException("Error saving to file: " + file.getPath(), e);
+            throw new ManagerSaveException("Error saving to file: " + file.getAbsolutePath(), e);
         }
     }
 
@@ -140,42 +145,52 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     private Task fromString(String value) {
+        if (value.trim().isEmpty()) {
+            return null;
+        }
         String[] parts = value.split(",");
-        int id = Integer.parseInt(parts[0]);
-        TaskType type = TaskType.valueOf(parts[1]);
-        String title = parts[2];
-        Status status = Status.valueOf(parts[3]);
-        String description = parts[4];
-        Duration duration = parts[5].isEmpty() ? null : Duration.ofMinutes(Long.parseLong(parts[5]));
-        LocalDateTime startTime = parts[6].isEmpty() ? null : LocalDateTime.parse(parts[6], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        if (parts.length < 8) {
+            return null;
+        }
+        try {
+            int id = Integer.parseInt(parts[0]);
+            TaskType type = TaskType.valueOf(parts[1]);
+            String title = parts[2];
+            Status status = Status.valueOf(parts[3]);
+            String description = parts[4];
+            Duration duration = parts[5].isEmpty() ? null : Duration.ofMinutes(Long.parseLong(parts[5]));
+            LocalDateTime startTime = parts[6].isEmpty() ? null : LocalDateTime.parse(parts[6], DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
-        switch (type) {
-            case TASK:
-                Task task = new Task(title, description, duration, startTime);
-                task.setId(id);
-                task.setStatus(status);
-                return task;
-            case EPIC:
-                Epic epic = new Epic(title, description, duration, startTime);
-                epic.setId(id);
-                epic.setStatus(status);
-                epic.setTaskManager(this);
-                return epic;
-            case SUBTASK:
-                int epicId = Integer.parseInt(parts[7]);
-                epic = epics.get(epicId);
-                if (epic == null) {
-                    epic = new Epic("Temp", "Temp", null, null);
-                    epic.setId(epicId);
+            switch (type) {
+                case TASK:
+                    Task task = new Task(title, description, duration, startTime);
+                    task.setId(id);
+                    task.setStatus(status);
+                    return task;
+                case EPIC:
+                    Epic epic = new Epic(title, description, duration, startTime);
+                    epic.setId(id);
+                    epic.setStatus(status);
                     epic.setTaskManager(this);
-                    epics.put(epicId, epic);
-                }
-                Subtask subtask = new Subtask(title, description, duration, startTime, epic);
-                subtask.setId(id);
-                subtask.setStatus(status);
-                return subtask;
-            default:
-                throw new IllegalArgumentException("Unknown task type: " + type);
+                    return epic;
+                case SUBTASK:
+                    int epicId = Integer.parseInt(parts[7]);
+                    Epic epicObj = epics.get(epicId);
+                    if (epicObj == null) {
+                        epicObj = new Epic("Temp", "Temp", null, null);
+                        epicObj.setId(epicId);
+                        epicObj.setTaskManager(this);
+                        epics.put(epicId, epicObj);
+                    }
+                    Subtask subtask = new Subtask(title, description, duration, startTime, epicObj);
+                    subtask.setId(id);
+                    subtask.setStatus(status);
+                    return subtask;
+                default:
+                    return null;
+            }
+        } catch (Exception e) {
+            return null;
         }
     }
 
