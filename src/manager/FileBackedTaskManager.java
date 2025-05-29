@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final File file;
@@ -200,27 +201,47 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             return manager;
         }
         try {
-            String content = Files.readString(file.toPath());
-            String[] lines = content.split("\n");
-            if (lines.length <= 1) {
+            List<String> lines = Files.readAllLines(file.toPath());
+            if (lines.size() <= 1) {
                 return manager;
             }
-            for (int i = 1; i < lines.length; i++) {
-                if (!lines[i].trim().isEmpty()) {
-                    Task task = manager.fromString(lines[i]);
-                    if (task.getType() == TaskType.TASK) {
-                        manager.tasks.put(task.getId(), task);
-                    } else if (task.getType() == TaskType.EPIC) {
-                        manager.epics.put(task.getId(), (Epic) task);
-                    } else if (task.getType() == TaskType.SUBTASK) {
-                        Subtask subtask = (Subtask) task;
-                        manager.subtasks.put(subtask.getId(), subtask);
-                        Epic epic = manager.epics.get(subtask.getEpicId());
-                        if (epic != null) {
-                            epic.addSubtask(subtask);
+            boolean historySection = false;
+            for (int i = 1; i < lines.size(); i++) {
+                String line = lines.get(i).trim();
+                if (line.isEmpty()) {
+                    historySection = true;
+                    continue;
+                }
+                if (historySection) {
+                    String[] historyIds = line.split(",");
+                    for (String idStr : historyIds) {
+                        if (!idStr.isEmpty()) {
+                            int id = Integer.parseInt(idStr);
+                            Task task = manager.tasks.get(id);
+                            if (task == null) task = manager.epics.get(id);
+                            if (task == null) task = manager.subtasks.get(id);
+                            if (task != null) {
+                                manager.historyManager.add(task);
+                            }
                         }
                     }
-                    manager.idCounter = Math.max(manager.idCounter, task.getId());
+                } else {
+                    Task task = manager.fromString(line);
+                    if (task != null) {
+                        if (task.getType() == TaskType.TASK) {
+                            manager.tasks.put(task.getId(), task);
+                        } else if (task.getType() == TaskType.EPIC) {
+                            manager.epics.put(task.getId(), (Epic) task);
+                        } else if (task.getType() == TaskType.SUBTASK) {
+                            Subtask subtask = (Subtask) task;
+                            manager.subtasks.put(subtask.getId(), subtask);
+                            Epic epic = manager.epics.get(subtask.getEpicId());
+                            if (epic != null) {
+                                epic.addSubtask(subtask);
+                            }
+                        }
+                        manager.idCounter = Math.max(manager.idCounter, task.getId());
+                    }
                 }
             }
         } catch (IOException e) {
