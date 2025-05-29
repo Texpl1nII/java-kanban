@@ -13,9 +13,9 @@ public class SubtaskTest {
         Epic epic = new Epic("Epic", "Description", null, null);
         epic.setId(1);
 
-        Subtask subtask1 = new Subtask("Subtask 1", "Description 1", epic);
+        Subtask subtask1 = new Subtask("Subtask 1", "Description 1", null, null, epic);
         subtask1.setId(2);
-        Subtask subtask2 = new Subtask("Subtask 2", "Description 2", epic);
+        Subtask subtask2 = new Subtask("Subtask 2", "Description 2", null, null, epic);
         subtask2.setId(2);
 
         assertEquals(subtask1, subtask2, "Subtasks with the same ID should be equal");
