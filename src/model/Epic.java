@@ -2,7 +2,6 @@ package model;
 
 import model.Task;
 import model.Subtask;
-import model.TaskType;
 import manager.InMemoryTaskManager;
 
 import java.util.ArrayList;

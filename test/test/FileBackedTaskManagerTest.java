@@ -32,9 +32,9 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
     void testSaveAndLoadWithDurationAndStartTime() throws IOException {
         Task task = new Task("Task 1", "Desc", Duration.ofMinutes(30), LocalDateTime.of(2025, 5, 27, 10, 0));
         Epic epic = new Epic("Epic 1", "Epic Desc", null, null);
-        Subtask subtask = new Subtask("Subtask 1", "Subtask Desc", Duration.ofMinutes(60), LocalDateTime.of(2025, 5, 27, 11, 0), epic);
         taskManager.createTask(task);
         taskManager.createEpic(epic);
+        Subtask subtask = new Subtask("Subtask 1", "Subtask Desc", Duration.ofMinutes(60), LocalDateTime.of(2025, 5, 27, 11, 0), epic);
         taskManager.createSubtask(subtask);
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
