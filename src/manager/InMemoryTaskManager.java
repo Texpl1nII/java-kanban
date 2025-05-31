@@ -71,10 +71,14 @@ public class InMemoryTaskManager implements TaskManager {
         if (!Objects.equals(task.getStartTime(), existingTask.getStartTime()) ||
                 !Objects.equals(task.getDuration(), existingTask.getDuration())) {
             if (hasOverlaps(task)) {
-                throw new IllegalStateException("Task overlaps with other tasks");
+                throw new IllegalStateException("Задача пересекается с другими задачами");
             }
         }
+        prioritizedTasks.remove(existingTask);
         tasks.put(task.getId(), task);
+        if (task.getStartTime() != null) {
+            prioritizedTasks.add(task);
+        }
     }
 
     @Override
@@ -117,7 +121,10 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateEpic(Epic epic) {
-        epics.put(epic.getId(), epic);
+        if (epics.containsKey(epic.getId())) {
+            epics.put(epic.getId(), epic);
+            updateEpicStatus(epic);
+        }
     }
 
     @Override
@@ -167,16 +174,17 @@ public class InMemoryTaskManager implements TaskManager {
         if (subtask.getId() != 0 && subtask.getEpicId() == subtask.getId()) {
             throw new IllegalArgumentException("Subtask cannot be its own epic");
         }
+        Epic epic = epics.get(subtask.getEpicId());
+        if (epic == null) {
+            throw new IllegalStateException("Epic with ID " + subtask.getEpicId() + " does not exist");
+        }
+        if (epic.getId() == subtask.getId()) {
+            throw new IllegalArgumentException("Epic cannot be its own subtask");
+        }
         subtask.setId(generateId());
         subtasks.put(subtask.getId(), subtask);
-        Epic epic = epics.get(subtask.getEpicId());
-        if (epic != null) {
-            if (epic.getId() == subtask.getId()) {
-                throw new IllegalArgumentException("Epic cannot be its own subtask");
-            }
-            epic.addSubtask(subtask);
-            updateEpicStatus(epic);
-        }
+        epic.addSubtask(subtask);
+        updateEpicStatus(epic);
         if (subtask.getStartTime() != null) {
             prioritizedTasks.add(subtask);
         }
@@ -191,8 +199,12 @@ public class InMemoryTaskManager implements TaskManager {
         if (subtask.getEpicId() == subtask.getId()) {
             throw new IllegalArgumentException("Subtask cannot be its own epic");
         }
+        Subtask existingSubtask = subtasks.get(subtask.getId());
+        if (existingSubtask == null) {
+            return;
+        }
+        prioritizedTasks.remove(existingSubtask);
         subtasks.put(subtask.getId(), subtask);
-        prioritizedTasks.removeIf(t -> t.getId() == subtask.getId());
         if (subtask.getStartTime() != null) {
             prioritizedTasks.add(subtask);
         }
@@ -262,25 +274,33 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void updateEpicStatus(Epic epic) {
-        if (epic.getSubtaskIds().isEmpty()) {
+        List<Integer> subtaskIds = epic.getSubtaskIds();
+        if (subtaskIds.isEmpty()) {
             epic.setStatus(Status.NEW);
+            epic.getEndTime();
             return;
         }
 
         boolean allDone = true;
         boolean allNew = true;
+        LocalDateTime endTime = null;
 
-        for (Integer subtaskId : epic.getSubtaskIds()) {
+        for (Integer subtaskId : subtaskIds) {
             Subtask subtask = subtasks.get(subtaskId);
             if (subtask != null) {
-                if (subtask.getStatus() != Status.DONE) {
-                    allDone = false;
-                }
-                if (subtask.getStatus() != Status.NEW) {
-                    allNew = false;
+                Status status = subtask.getStatus();
+                if (status != Status.DONE) allDone = false;
+                if (status != Status.NEW) allNew = false;
+                if (subtask.getStartTime() != null && subtask.getDuration() != null) {
+                    LocalDateTime subtaskEnd = subtask.getStartTime().plus(subtask.getDuration());
+                    if (endTime == null || subtaskEnd.isAfter(endTime)) {
+                        endTime = subtaskEnd;
+                    }
                 }
             }
         }
+
+        epic.getEndTime();
 
         if (allDone) {
             epic.setStatus(Status.DONE);

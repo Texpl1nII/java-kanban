@@ -24,17 +24,35 @@ public class Epic extends Task {
         this.taskManager = taskManager;
     }
 
-    @Override
-    public TaskType getType() {
-        return TaskType.EPIC;
+    public void addSubtask(Subtask subtask) {
+        if (!subtaskIds.contains(subtask.getId())) {
+            subtaskIds.add(subtask.getId());
+        }
+    }
+
+    public void removeSubtask(Subtask subtask) {
+        subtaskIds.remove((Integer) subtask.getId());
+    }
+
+    public void clearSubtasks() {
+        subtaskIds.clear();
     }
 
     public List<Integer> getSubtaskIds() {
-        return subtaskIds;
+        return new ArrayList<>(subtaskIds);
     }
 
-    public void addSubtask(Subtask subtask) {
-        subtaskIds.add(subtask.getId());
+    public List<Subtask> getSubtasks() {
+        List<Subtask> subtasks = new ArrayList<>();
+        if (taskManager != null) {
+            for (Integer id : subtaskIds) {
+                Subtask subtask = taskManager.getSubtask(id);
+                if (subtask != null) {
+                    subtasks.add(subtask);
+                }
+            }
+        }
+        return subtasks;
     }
 
     @Override
@@ -74,9 +92,14 @@ public class Epic extends Task {
 
     @Override
     public String toString() {
-        return "Epic{id=" + getId() + ", title='" + title + "', description='" + description +
-                "', status=" + status + ", subtasks=" + subtaskIds.size() +
+        return "Epic{id=" + getId() +
+                ", title='" + getTitle() +
+                "', description='" + getDescription() +
+                "', status=" + getStatus() +
+                ", subtasks=" + subtaskIds.size() +
                 ", duration=" + (getDuration() != null ? getDuration().toMinutes() : "null") +
-                ", startTime=" + getStartTime() + "}";
+                ", startTime=" + getStartTime() +
+                ", endTime=" + getEndTime() +
+                "}";
     }
 }
