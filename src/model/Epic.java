@@ -11,55 +11,42 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Epic extends Task {
-    private final List<Integer> subtaskIds;
-    private transient InMemoryTaskManager taskManager;
+    private final List<Subtask> subtasks;
 
     public Epic(String title, String description, Duration duration, LocalDateTime startTime) {
         super(title, description, duration, startTime);
-        this.subtaskIds = new ArrayList<>();
-    }
-
-    public void setTaskManager(InMemoryTaskManager taskManager) {
-        this.taskManager = taskManager;
+        this.subtasks = new ArrayList<>();
     }
 
     public void addSubtask(Subtask subtask) {
-        if (!subtaskIds.contains(subtask.getId())) {
-            subtaskIds.add(subtask.getId());
+        if (subtask != null && !subtasks.contains(subtask)) {
+            subtasks.add(subtask);
         }
     }
 
     public void removeSubtask(Subtask subtask) {
-        subtaskIds.remove((Integer) subtask.getId());
+        subtasks.remove(subtask);
     }
 
     public void clearSubtasks() {
-        subtaskIds.clear();
+        subtasks.clear();
     }
 
     public List<Integer> getSubtaskIds() {
-        return new ArrayList<>(subtaskIds);
+        List<Integer> ids = new ArrayList<>();
+        for (Subtask subtask : subtasks) {
+            ids.add(subtask.getId());
+        }
+        return ids;
     }
 
     public List<Subtask> getSubtasks() {
-        List<Subtask> subtasks = new ArrayList<>();
-        if (taskManager != null) {
-            for (Integer id : subtaskIds) {
-                Subtask subtask = taskManager.getSubtask(id);
-                if (subtask != null) {
-                    subtasks.add(subtask);
-                }
-            }
-        }
-        return subtasks;
+        return new ArrayList<>(subtasks);
     }
 
     @Override
     public Duration getDuration() {
-        if (taskManager == null) return Duration.ZERO;
-        return subtaskIds.stream()
-                .map(taskManager::getSubtask)
-                .filter(Objects::nonNull)
+        return subtasks.stream()
                 .map(Subtask::getDuration)
                 .filter(Objects::nonNull)
                 .reduce(Duration.ZERO, Duration::plus, Duration::plus);
@@ -67,10 +54,7 @@ public class Epic extends Task {
 
     @Override
     public LocalDateTime getStartTime() {
-        if (taskManager == null) return null;
-        return subtaskIds.stream()
-                .map(taskManager::getSubtask)
-                .filter(Objects::nonNull)
+        return subtasks.stream()
                 .map(Subtask::getStartTime)
                 .filter(Objects::nonNull)
                 .min(LocalDateTime::compareTo)
@@ -79,10 +63,7 @@ public class Epic extends Task {
 
     @Override
     public LocalDateTime getEndTime() {
-        if (taskManager == null) return null;
-        return subtaskIds.stream()
-                .map(taskManager::getSubtask)
-                .filter(Objects::nonNull)
+        return subtasks.stream()
                 .map(Subtask::getEndTime)
                 .filter(Objects::nonNull)
                 .max(LocalDateTime::compareTo)
@@ -95,7 +76,7 @@ public class Epic extends Task {
                 ", title='" + getTitle() +
                 "', description='" + getDescription() +
                 "', status=" + getStatus() +
-                ", subtasks=" + subtaskIds.size() +
+                ", subtasks=" + subtasks.size() +
                 ", duration=" + (getDuration() != null ? getDuration().toMinutes() : "null") +
                 ", startTime=" + getStartTime() +
                 ", endTime=" + getEndTime() +

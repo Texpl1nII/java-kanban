@@ -25,9 +25,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public Task createTask(Task task) {
-        if (hasOverlaps(task)) {
-            throw new IllegalStateException("Задача пересекается с другими задачами");
-        }
+        hasOverlaps(task);
         Task createdTask = super.createTask(task);
         save();
         return createdTask;
@@ -36,16 +34,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     @Override
     public Epic createEpic(Epic epic) {
         Epic createdEpic = super.createEpic(epic);
-        createdEpic.setTaskManager(this);
         save();
         return createdEpic;
     }
 
     @Override
     public Subtask createSubtask(Subtask subtask) {
-        if (hasOverlaps(subtask)) {
-            throw new IllegalStateException("Subtask overlaps with existing tasks");
-        }
+        hasOverlaps(subtask);
         Epic epic = epics.get(subtask.getEpicId());
         if (epic == null) {
             epic = new Epic("Temp Epic", "Temporary epic for subtask", null, null);
@@ -59,9 +54,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public void updateTask(Task task) {
-        if (hasOverlaps(task)) {
-            throw new IllegalStateException("Задача пересекается с другими задачами");
-        }
+        hasOverlaps(task);
         super.updateTask(task);
         save();
     }
@@ -74,9 +67,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public void updateSubtask(Subtask subtask) {
-        if (hasOverlaps(subtask)) {
-            throw new IllegalStateException("Задача пересекается с другими задачами");
-        }
+        hasOverlaps(subtask);
         super.updateSubtask(subtask);
         save();
     }
@@ -183,7 +174,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     Epic epic = new Epic(title, description, duration, startTime);
                     epic.setId(id);
                     epic.setStatus(status);
-                    epic.setTaskManager(this);
                     return epic;
                 case SUBTASK:
                     int epicId = epicIdStr.isEmpty() ? 0 : Integer.parseInt(epicIdStr);
@@ -191,7 +181,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     if (epicObj == null) {
                         epicObj = new Epic("Temp", "Temp", null, null);
                         epicObj.setId(epicId);
-                        epicObj.setTaskManager(this);
                         epics.put(epicId, epicObj);
                     }
                     Subtask subtask = new Subtask(title, description, duration, startTime, epicObj);
@@ -220,7 +209,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             }
             List<String> subtaskLines = new ArrayList<>();
             boolean historySection = false;
-            // First pass: Load tasks and epics
             for (int i = 1; i < lines.size(); i++) {
                 String line = lines.get(i).trim();
                 if (line.isEmpty()) {
