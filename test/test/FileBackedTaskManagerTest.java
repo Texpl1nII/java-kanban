@@ -13,136 +13,91 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class FileBackedTaskManagerTest {
-    private FileBackedTaskManager manager;
+public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
     private File tempFile;
 
     @BeforeEach
     void setUp(@TempDir File tempDir) throws IOException {
         tempFile = new File(tempDir, "tasks.csv");
-        manager = new FileBackedTaskManager(tempFile);
+        taskManager = new FileBackedTaskManager(tempFile);
     }
 
     @Test
-    void testCreateAndSaveTask() {
-        Task task = new Task("Task 1", "Description 1");
-        Task createdTask = manager.createTask(task);
-
-        assertNotNull(createdTask, "Task should be created");
-        assertTrue(tempFile.exists(), "File should exist after saving");
-        assertEquals(1, manager.getAllTasks().size(), "Task list should contain one task");
-
-        try {
-            String content = Files.readString(tempFile.toPath());
-            assertTrue(content.contains("1,TASK,Task 1,NEW,Description 1,"), "File should contain task data");
-        } catch (IOException e) {
-            fail("Failed to read file: " + e.getMessage());
-        }
-    }
-
-    @Test
-    void testCreateAndSaveEpicAndSubtask() {
-        Epic epic = new Epic("Epic 1", "Epic Description");
-        Epic createdEpic = manager.createEpic(epic);
-        Subtask subtask = new Subtask("Subtask 1", "Subtask Description", createdEpic);
-        Subtask createdSubtask = manager.createSubtask(subtask);
-
-        assertNotNull(createdEpic, "Epic should be created");
-        assertNotNull(createdSubtask, "Subtask should be created");
-        assertEquals(1, manager.getAllEpics().size(), "Epic list should contain one epic");
-        assertEquals(1, manager.getAllSubtasks().size(), "Subtask list should contain one subtask");
-
-        try {
-            String content = Files.readString(tempFile.toPath());
-            assertTrue(content.contains("1,EPIC,Epic 1,NEW,Epic Description,"), "File should contain epic data");
-            assertTrue(content.contains("2,SUBTASK,Subtask 1,NEW,Subtask Description,1"), "File should contain subtask data");
-        } catch (IOException e) {
-            fail("Failed to read file: " + e.getMessage());
-        }
-    }
-
-    @Test
-    void testUpdateTask() {
-        Task task = new Task("Task 1", "Description 1");
-        Task createdTask = manager.createTask(task);
-        createdTask.setTitle("Updated Task");
-        createdTask.setStatus(Status.IN_PROGRESS);
-        manager.updateTask(createdTask);
-
-        assertEquals("Updated Task", manager.getTask(createdTask.getId()).getTitle(), "Task title should be updated");
-        assertEquals(Status.IN_PROGRESS, manager.getTask(createdTask.getId()).getStatus(), "Task status should be updated");
-
-        try {
-            String content = Files.readString(tempFile.toPath());
-            assertTrue(content.contains("1,TASK,Updated Task,IN_PROGRESS,Description 1,"), "File should contain updated task data");
-        } catch (IOException e) {
-            fail("Failed to read file: " + e.getMessage());
-        }
-    }
-
-    @Test
-    void testDeleteTask() {
-        Task task = new Task("Task 1", "Description 1");
-        Task createdTask = manager.createTask(task);
-        manager.deleteTask(createdTask.getId());
-
-        assertNull(manager.getTask(createdTask.getId()), "Task should be deleted");
-        assertEquals(0, manager.getAllTasks().size(), "Task list should be empty");
-
-        try {
-            String content = Files.readString(tempFile.toPath());
-            assertEquals("id,type,name,status,description,epic\n", content, "File should only contain header");
-        } catch (IOException e) {
-            fail("Failed to read file: " + e.getMessage());
-        }
-    }
-
-    @Test
-    void testLoadFromFile() {
-        Epic epic = new Epic("Epic 1", "Epic Description");
-        Task task = new Task("Task 1", "Description 1");
-        manager.createEpic(epic);
-        manager.createTask(task);
-        Subtask subtask = new Subtask("Subtask 1", "Subtask Description", epic);
-        manager.createSubtask(subtask);
-
-        try {
-            String content = Files.readString(tempFile.toPath());
-            System.out.println("File content:\n" + content);
-        } catch (IOException e) {
-            fail("Failed to read file: " + e.getMessage());
-        }
+    void testSaveAndLoadWithDurationAndStartTime() throws IOException {
+        Task task = new Task("Task 1", "Desc", Duration.ofMinutes(30), LocalDateTime.of(2025, 5, 27, 10, 0));
+        Epic epic = new Epic("Epic 1", "Epic Desc", null, null);
+        taskManager.createTask(task);
+        taskManager.createEpic(epic);
+        Subtask subtask = new Subtask("Subtask 1", "Subtask Desc", Duration.ofMinutes(60), LocalDateTime.of(2025, 5, 27, 11, 0), epic);
+        taskManager.createSubtask(subtask);
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
+        Task loadedTask = loadedManager.getTask(task.getId());
+        assertNotNull(loadedTask, "Задача должна существовать");
+        assertEquals(Duration.ofMinutes(30), loadedTask.getDuration(), "Продолжительность задачи должна быть сохранена");
+        assertEquals(LocalDateTime.of(2025, 5, 27, 10, 0), loadedTask.getStartTime(), "Время начала задачи должно быть сохранено");
 
-        assertEquals(1, loadedManager.getAllTasks().size(), "Loaded manager should have one task");
-        assertEquals(1, loadedManager.getAllEpics().size(), "Loaded manager should have one epic");
-        assertEquals(1, loadedManager.getAllSubtasks().size(), "Loaded manager should have one subtask");
-        assertEquals("Task 1", loadedManager.getTask(2).getTitle(), "Loaded task should have correct title");
-        assertEquals("Epic 1", loadedManager.getEpic(1).getTitle(), "Loaded epic should have correct title");
-        assertEquals("Subtask 1", loadedManager.getSubtask(3).getTitle(), "Loaded subtask should have correct title");
-        assertEquals(1, loadedManager.getSubtask(3).getEpicId(), "Subtask should be linked to correct epic");
-    }
+        Epic loadedEpic = loadedManager.getEpic(epic.getId());
+        assertNotNull(loadedEpic, "Эпик должен существовать");
+        assertEquals(Duration.ofMinutes(60), loadedEpic.getDuration(), "Продолжительность эпика должна быть корректной");
+        assertEquals(LocalDateTime.of(2025, 5, 27, 11, 0), loadedEpic.getStartTime(), "Время начала эпика должно быть корректным");
 
-    @Test
-    void testLoadEmptyFile() {
-        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
-
-        assertTrue(loadedManager.getAllTasks().isEmpty(), "Tasks should be empty for non-existent or empty file");
-        assertTrue(loadedManager.getAllEpics().isEmpty(), "Epics should be empty for non-existent or empty file");
-        assertTrue(loadedManager.getAllSubtasks().isEmpty(), "Subtasks should be empty for non-existent or empty file");
+        List<Subtask> epicSubtasks = loadedManager.getEpicSubtasks(epic.getId());
+        assertEquals(subtask.getId(), epicSubtasks.get(0).getId(), "Подзадача должна быть связана с эпиком");
     }
 
     @Test
     void testSaveThrowsManagerSaveException() {
         FileBackedTaskManager invalidManager = new FileBackedTaskManager(new File("/invalid/path/tasks.csv"));
-        Task task = new Task("Task 1", "Description 1");
-
+        Task task = new Task("Task 1", "Desc", Duration.ofMinutes(30), LocalDateTime.now());
         assertThrows(ManagerSaveException.class, () -> invalidManager.createTask(task),
-                "Should throw ManagerSaveException for invalid file path");
+                "Должно быть выброшено исключение для неверного пути");
+    }
+
+    @Test
+    void testLoadEmptyFile() {
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
+        assertTrue(loadedManager.getAllTasks().isEmpty(), "Задачи должны отсутствовать");
+        assertTrue(loadedManager.getAllEpics().isEmpty(), "Эпики должны отсутствовать");
+        assertTrue(loadedManager.getAllSubtasks().isEmpty(), "Подзадачи должны отсутствовать");
+    }
+
+    @Test
+    void testSaveAndLoadEmptyManager() throws IOException {
+        taskManager.clearTasks();
+        taskManager.clearEpics();
+        taskManager.clearSubtasks();
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
+        assertTrue(loadedManager.getAllTasks().isEmpty(), "Задачи должны отсутствовать");
+        assertTrue(loadedManager.getAllEpics().isEmpty(), "Эпики должны отсутствовать");
+        assertTrue(loadedManager.getAllSubtasks().isEmpty(), "Подзадачи должны отсутствовать");
+    }
+
+    @Test
+    void testHistorySavedAndLoaded() throws IOException {
+        Task task = new Task("Task 1", "Desc", Duration.ofMinutes(30), LocalDateTime.now());
+        taskManager.createTask(task);
+        taskManager.getTask(task.getId());
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
+        assertEquals(1, loadedManager.getHistory().size(), "История должна содержать одну задачу");
+        assertEquals(task.getId(), loadedManager.getHistory().get(0).getId(), "Задача в истории должна совпадать");
+    }
+
+    @Test
+    void testPrioritizedTasksSavedAndLoaded() throws IOException {
+        Task task1 = new Task("Task 1", "Desc", Duration.ofMinutes(30), LocalDateTime.of(2025, 5, 27, 10, 0));
+        Task task2 = new Task("Task 2", "Desc", Duration.ofMinutes(30), LocalDateTime.of(2025, 5, 27, 9, 0));
+        taskManager.createTask(task1);
+        taskManager.createTask(task2);
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
+        List<Task> prioritized = loadedManager.getPrioritizedTasks();
+        assertEquals(task2.getId(), prioritized.get(0).getId(), "Задачи должны быть отсортированы по startTime");
+        assertEquals(task1.getId(), prioritized.get(1).getId(), "Задачи должны быть отсортированы по startTime");
     }
 }
