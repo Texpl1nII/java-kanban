@@ -48,8 +48,8 @@ public class EpicsHttpHandler extends BaseHttpHandler {
                 String body = readRequestBody(exchange);
                 Epic epic = gson.fromJson(body, Epic.class);
                 if (path.equals("/epics")) {
-                    taskManager.createEpic(epic);
-                    sendText(exchange, "{\"status\":\"Epic created\"}", 201);
+                    Epic createdEpic = taskManager.createEpic(epic);
+                    sendText(exchange, gson.toJson(new Response("Epic created", createdEpic.getId())), 201);
                 } else {
                     int id = getIdFromPath(exchange);
                     if (id == -1) {
@@ -74,5 +74,8 @@ public class EpicsHttpHandler extends BaseHttpHandler {
         } catch (Exception e) {
             handleException(exchange, e);
         }
+    }
+
+    private record Response(String status, int id) {
     }
 }

@@ -39,8 +39,8 @@ public class SubtasksHttpHandler extends BaseHttpHandler {
                 String body = readRequestBody(exchange);
                 Subtask subtask = gson.fromJson(body, Subtask.class);
                 if (path.equals("/subtasks")) {
-                    taskManager.createSubtask(subtask);
-                    sendText(exchange, "{\"status\":\"Subtask created\"}", 201);
+                    Subtask createdSubtask = taskManager.createSubtask(subtask);
+                    sendText(exchange, gson.toJson(new Response("Subtask created", createdSubtask.getId())), 201);
                 } else {
                     int id = getIdFromPath(exchange);
                     if (id == -1) {
@@ -65,5 +65,8 @@ public class SubtasksHttpHandler extends BaseHttpHandler {
         } catch (Exception e) {
             handleException(exchange, e);
         }
+    }
+
+    private record Response(String status, int id) {
     }
 }

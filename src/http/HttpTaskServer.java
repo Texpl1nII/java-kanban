@@ -16,15 +16,16 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 
 public class HttpTaskServer {
-    private static final int PORT = 8080;
+    private int port = 8080;
     private final HttpServer server;
     private final TaskManager taskManager;
     private final Gson gson;
 
-    public HttpTaskServer(TaskManager taskManager) throws IOException {
+    public HttpTaskServer(TaskManager taskManager, int port) throws IOException {
         this.taskManager = taskManager;
+        this.port = port;
         this.gson = GsonConfig.getGson();
-        this.server = HttpServer.create(new InetSocketAddress(PORT), 0);
+        this.server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext("/tasks", (HttpHandler) new TasksHttpHandler(taskManager, gson));
         server.createContext("/subtasks", (HttpHandler) new SubtasksHttpHandler(taskManager, gson));
         server.createContext("/epics", (HttpHandler) new EpicsHttpHandler(taskManager, gson));
@@ -34,7 +35,7 @@ public class HttpTaskServer {
 
     public void start() {
         server.start();
-        System.out.println("Server started on port " + PORT);
+        System.out.println("Server started on port " + port);
     }
 
     public void stop() {
@@ -47,7 +48,7 @@ public class HttpTaskServer {
 
     public static void main(String[] args) throws IOException {
         TaskManager taskManager = Managers.getDefault();
-        HttpTaskServer server = new HttpTaskServer(taskManager);
+        HttpTaskServer server = new HttpTaskServer(taskManager, 8080);
         server.start();
     }
 }

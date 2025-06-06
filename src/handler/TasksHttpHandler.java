@@ -39,8 +39,8 @@ public class TasksHttpHandler extends BaseHttpHandler {
                 String body = readRequestBody(exchange);
                 Task task = gson.fromJson(body, Task.class);
                 if (path.equals("/tasks")) {
-                    taskManager.createTask(task);
-                    sendText(exchange, "{\"status\":\"Task created\"}", 201);
+                    Task createdTask = taskManager.createTask(task);
+                    sendText(exchange, gson.toJson(new Response("Task created", createdTask.getId())), 201);
                 } else {
                     int id = getIdFromPath(exchange);
                     if (id == -1) {
@@ -65,5 +65,8 @@ public class TasksHttpHandler extends BaseHttpHandler {
         } catch (Exception e) {
             handleException(exchange, e);
         }
+    }
+
+    private record Response(String status, int id) {
     }
 }
