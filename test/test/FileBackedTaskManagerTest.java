@@ -1,15 +1,15 @@
 package test;
 
+import manager.FileBackedTaskManager;
+import manager.ManagerSaveException;
 import model.Epic;
 import model.Subtask;
 import model.Task;
 import model.Status;
-import model.TaskType;
-import manager.FileBackedTaskManager;
-import manager.ManagerSaveException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import exception.NotFoundException;
 
 import java.io.File;
 import java.io.IOException;
@@ -99,5 +99,20 @@ public class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskMan
         List<Task> prioritized = loadedManager.getPrioritizedTasks();
         assertEquals(task2.getId(), prioritized.get(0).getId(), "Задачи должны быть отсортированы по startTime");
         assertEquals(task1.getId(), prioritized.get(1).getId(), "Задачи должны быть отсортированы по startTime");
+    }
+
+    @Test
+    void testGetNonExistentTaskThrowsException() {
+        assertThrows(NotFoundException.class, () -> taskManager.getTask(999), "Should throw NotFoundException for non-existent task");
+    }
+
+    @Test
+    void testGetNonExistentEpicThrowsException() {
+        assertThrows(NotFoundException.class, () -> taskManager.getEpic(999), "Should throw NotFoundException for non-existent epic");
+    }
+
+    @Test
+    void testGetNonExistentSubtaskThrowsException() {
+        assertThrows(NotFoundException.class, () -> taskManager.getSubtask(999), "Should throw NotFoundException for non-existent subtask");
     }
 }

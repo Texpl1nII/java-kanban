@@ -9,6 +9,7 @@ import model.Subtask;
 import model.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import exception.NotFoundException;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -83,5 +84,35 @@ public class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager
         Task updatedTask = taskManager.getTask(task.getId());
         assertNotNull(updatedTask, "Задача должна существовать");
         assertEquals(Status.IN_PROGRESS, updatedTask.getStatus(), "Статус задачи должен обновиться");
+    }
+
+    @Test
+    void testGetNonExistentTaskThrowsException() {
+        assertThrows(NotFoundException.class, () -> taskManager.getTask(999), "Should throw NotFoundException for non-existent task");
+    }
+
+    @Test
+    void testGetNonExistentEpicThrowsException() {
+        assertThrows(NotFoundException.class, () -> taskManager.getEpic(999), "Should throw NotFoundException for non-existent epic");
+    }
+
+    @Test
+    void testGetNonExistentSubtaskThrowsException() {
+        assertThrows(NotFoundException.class, () -> taskManager.getSubtask(999), "Should throw NotFoundException for non-existent subtask");
+    }
+
+    @Test
+    void testDeleteNonExistentTaskThrowsException() {
+        assertThrows(NotFoundException.class, () -> taskManager.deleteTask(999), "Should throw NotFoundException for non-existent task");
+    }
+
+    @Test
+    void testDeleteNonExistentEpicThrowsException() {
+        assertThrows(NotFoundException.class, () -> taskManager.deleteEpic(999), "Should throw NotFoundException for non-existent epic");
+    }
+
+    @Test
+    void testDeleteNonExistentSubtaskThrowsException() {
+        assertThrows(NotFoundException.class, () -> taskManager.deleteSubtask(999), "Should throw NotFoundException for non-existent subtask");
     }
 }
